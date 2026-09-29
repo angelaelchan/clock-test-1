@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  /* Values from Figma (7:143, 7:142, 11:121, 11:123). */
+  --color-hud: rgb(255 255 255 / 0.1);
+  --color-hud-button: rgb(255 255 255 / 0.33);
+  --color-hud-button-hover: rgb(255 255 255 / 0.42);
+  --radius-hud: 20px;
+  --font-display: "Figtree", system-ui, sans-serif;
+
+  --color-bubble: rgb(0 0 0 / 0.45);
+
+  /* Debug panel sky-weight swatches, sampled from the three sky images. */
+  --color-sky-night: #3d5a9c;
+  --color-sky-sunset: #f5b48a;
+  --color-sky-day: #8cc4f5;
+
+  --animate-twinkle: twinkle 3s ease-in-out infinite;
+  /* One-shots; durations are overridden inline from config.ts. */
+  --animate-bubble: bubble-float 1.2s ease-out forwards;
+  --animate-bubble-fade: bubble-fade 1.2s ease-out forwards;
+  --animate-follower-drop: follower-drop 150ms ease-in forwards;
+
+  @keyframes bubble-float {
+    0% { transform: translateY(0); opacity: 1; }
+    35% { opacity: 1; }
+    100% { transform: translateY(calc(var(--bubble-rise) * -1)); opacity: 0; }
+  }
+
+  @keyframes bubble-fade {
+    35% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes follower-drop {
+    to { transform: scale(0.6); opacity: 0; }
+  }
+
+  @keyframes sky-drift {
+    0%, 100% { transform: translate(calc(var(--sky-drift) * -1), calc(var(--sky-drift) * -0.5)) scale(1); }
+    50% { transform: translate(var(--sky-drift), calc(var(--sky-drift) * 0.5)) scale(var(--sky-scale-max)); }
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.9; }
+  }
+}
+
+/* Idle loops whose timings/amounts come from config.ts as CSS vars set on the
+   element (<Sky>, <Avatar>). They must be `inline` so the vars resolve on that
+   element, not on :root where they don't exist. */
+@theme inline {
+  --animate-sky-drift: sky-drift var(--sky-drift-period) ease-in-out infinite;
+
+  /* Avatar idle (SPEC §8.2). Every motion is anchored at her bottom edge (the
+     wrappers use origin-bottom), so the cut-off edge of the art never lifts off
+     the tray: breathing, bob and nod are vertical stretch/squash, and the sway
+     is a skew rather than a rotation (which would lift a bottom corner).
+     The outer wrapper breathes (+ sways when tired); the inner one bobs or nods. */
+  --animate-idle-happy: idle-breathe var(--happy-breathe-s) ease-in-out infinite;
+  /* A quarter cycle behind the breathing; half a cycle would cancel it out. */
+  --animate-idle-bob: idle-bob var(--happy-breathe-s) ease-in-out calc(var(--happy-breathe-s) * -0.25) infinite;
+  --animate-idle-tired:
+    idle-breathe var(--tired-breathe-s) ease-in-out infinite,
+    idle-sway var(--tired-sway-s) ease-in-out infinite;
+  --animate-idle-nod: idle-nod var(--tired-nod-s) ease-in-out infinite;
+  --animate-idle-sleeping: idle-breathe var(--sleep-breathe-s) ease-in-out infinite;
+  --animate-zzz: zzz calc(var(--zzz-every-s) * 3) ease-out infinite;
+}
+
+@keyframes idle-breathe {
+  0%, 100% { scale: 1 1; }
+  50% { scale: 1 var(--breathe-scale-y); }
+}
+
+@keyframes idle-bob {
+  0%, 100% { scale: 1 1; }
+  50% { scale: 1 var(--happy-bob-scale-y); }
+}
+
+@keyframes idle-sway {
+  0%, 100% { transform: skewX(calc(var(--tired-sway-deg) * -1)); }
+  50% { transform: skewX(var(--tired-sway-deg)); }
+}
+
+/* Mostly still, then one slow nod (a brief squash) near the end of each cycle. */
+@keyframes idle-nod {
+  0%, 75%, 100% { scale: 1 1; }
+  87% { scale: 1 var(--tired-nod-scale-y); }
+}
+
+@keyframes zzz {
+  0% { opacity: 0; translate: 0 0; scale: 0.6; }
+  15% { opacity: 0.9; }
+  100% { opacity: 0; translate: 22px -48px; scale: 1.15; }
+}
+
+/* Holding an item hides the system cursor over the whole stage, including
+   buttons that set their own cursor (SPEC §9.2). */
+[data-holding],
+[data-holding] * {
+  cursor: none !important;
+}
+
+/* No long-press image callout on iOS while tapping/dragging items. */
+[data-stage] {
+  -webkit-touch-callout: none;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
